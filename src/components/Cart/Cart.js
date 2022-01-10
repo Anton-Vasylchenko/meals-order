@@ -3,11 +3,15 @@ import Modal from '../UI/Modal';
 import CartItem from './CartItem';
 import CartContext from '../../store/CartContext';
 import Checkout from './Checkout';
+import Spinner from '../UI/Spinner';
+import apiServices from '../../services/api-services';
 
 import styles from './Cart.module.css';
 
 function Cart(props) {
     const [isCheckout, setIsCheckout] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [didSubmit, setDidSubmit] = useState(false);
     const cartCtx = useContext(CartContext);
 
     const hasItems = cartCtx.items.length > 0;
@@ -27,6 +31,14 @@ function Cart(props) {
     const orderHandler = () => {
         setIsCheckout(true)
     }
+
+    const submitOrderHandler = async (userData) => {
+        setIsSubmitting(true);
+        await apiServices.sendOrder(userData, cartCtx.items);
+        setIsSubmitting(false);
+        setDidSubmit(true);
+        cartCtx.clearCart();
+    };
 
     const cartItems = cartCtx.items.map((item) => (
         <CartItem
@@ -48,18 +60,35 @@ function Cart(props) {
                 <button onClick={orderHandler} className={styles.button}>Order</button>}
         </div>
 
+
+    const cartModalContent = <React.Fragment>
+        <ul className={styles['cart-items']}>
+            {cartItems}
+        </ul>
+        <div className={styles.total}>
+            <span>TotalAmount</span>
+            <span>{totalAmount}</span>
+        </div>
+        {isCheckout &&
+            <Checkout onSubmit={submitOrderHandler} onCancel={props.onClose} />}
+        {!isCheckout && modalActions}
+    </React.Fragment>
+
+    const didSubmitModalContent = <React.Fragment>
+        <p>Successfully sent the order!</p>
+        <div className={styles.actions}>
+            <button className={styles.button} onClick={props.onClose}>
+                Close
+            </button>
+        </div>
+    </React.Fragment>
+
     return (
         <Modal onClose={props.onClose}>
-            <ul className={styles['cart-items']}>
-                {cartItems}
-            </ul>
-            <div className={styles.total}>
-                <span>TotalAmount</span>
-                <span>{totalAmount}</span>
-            </div>
 
-            {isCheckout && <Checkout onCancel={props.onClose} />}
-            {!isCheckout && modalActions}
+            {!isSubmitting && !didSubmit && cartModalContent}
+            {isSubmitting && <Spinner />}
+            {!isSubmitting && didSubmit && didSubmitModalContent}
 
         </Modal>
     )

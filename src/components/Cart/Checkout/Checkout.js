@@ -18,59 +18,58 @@ function Checkout(props) {
     const confirmHandler = (event) => {
         event.preventDefault();
 
-        const enteredNameIsValid = !isEmpty(nameInputRef.current.value);
-        const enteredStreetIsValid = !isEmpty(streetInputRef.current.value);
-        const enteredCityIsValid = !isEmpty(cityInputRef.current.value);
-        const enteredPostalCodeIsValid = isFiveChars(postalCodeInputRef.current.value);
+        const enteredData = {
+            name: nameInputRef.current.value,
+            street: streetInputRef.current.value,
+            city: cityInputRef.current.value,
+            postalCode: postalCodeInputRef.current.value
+        }
+
+        const enteredDataIsValid = {
+            name: !isEmpty(enteredData.name),
+            street: !isEmpty(enteredData.street),
+            city: !isEmpty(enteredData.city),
+            postalCode: isFiveChars(enteredData.postalCode)
+        }
 
         setFormInputsValidity({
-            name: enteredNameIsValid,
-            street: enteredStreetIsValid,
-            city: enteredCityIsValid,
-            postalCode: enteredPostalCodeIsValid
+            ...enteredDataIsValid
         })
 
-        const formIsValid =
-            enteredNameIsValid &&
-            enteredStreetIsValid &&
-            enteredCityIsValid &&
-            enteredPostalCodeIsValid
+        const formIsValid = !Object.values(enteredDataIsValid).includes(false);
 
         if (!formIsValid) {
             return;
         }
+
+        props.onSubmit(enteredData)
     };
 
-    const nameControlClasses =
-        `${styles.control} ${formInputsValidity.name ? '' : styles.invalid}`
-    const streetControlClasses =
-        `${styles.control} ${formInputsValidity.street ? '' : styles.invalid}`
-    const cityControlClasses =
-        `${styles.control} ${formInputsValidity.city ? '' : styles.invalid}`
-    const postalCodeControlClasses =
-        `${styles.control} ${formInputsValidity.postalCode ? '' : styles.invalid}`
+    const controlClasses = (formInputField) => {
+        return `${styles.control} ${formInputsValidity[formInputField] ? "" : styles.invalid}`;
+    };
 
     return (
         <form onSubmit={confirmHandler} className={styles.form}>
-            <div className={nameControlClasses}>
+            <div className={controlClasses('name')}>
                 <label htmlFor="name">Your Name</label>
                 <input type="text" id="name" ref={nameInputRef} />
                 {!formInputsValidity.name && <p>Please enter a validate name!</p>}
             </div>
 
-            <div className={streetControlClasses}>
+            <div className={controlClasses('street')}>
                 <label htmlFor="street">Street</label>
                 <input type="text" id="street" ref={streetInputRef} />
                 {!formInputsValidity.street && <p>Please enter a validate street!</p>}
             </div>
 
-            <div className={cityControlClasses}>
+            <div className={controlClasses('city')}>
                 <label htmlFor="city">City</label>
                 <input type="text" id="city" ref={cityInputRef} />
                 {!formInputsValidity.city && <p>Please enter a validate city!</p>}
             </div>
 
-            <div className={postalCodeControlClasses}>
+            <div className={controlClasses('postalCode')}>
                 <label htmlFor="postal">Postal Code</label>
                 <input type="text" id="postal" ref={postalCodeInputRef} />
                 {!formInputsValidity.postalCode && <p>Please enter a validate postal code (5 characters long)!</p>}
